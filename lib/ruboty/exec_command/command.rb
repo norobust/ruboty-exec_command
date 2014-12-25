@@ -56,7 +56,7 @@ module Ruboty
       end
 
       def help
-        run(args=['-h'])
+        run(args=['-h']).chomp
       end
 
     end

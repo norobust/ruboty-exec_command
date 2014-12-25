@@ -10,11 +10,11 @@ module Ruboty
       # The command should return a usage with -h option
       def self.register_commands
         Ruboty::ExecCommand::Command.all.each do |e|
-          on /#{e.command_args}/i, name: "command", description: e.help
+          on /#{e.command_args}/i, name: "command_handler", description: e.help
         end
       end
 
-      def command(message)
+      def command_handler(message)
         Ruboty::ExecCommand::Actions::Command.new(message).call
       end
     end
