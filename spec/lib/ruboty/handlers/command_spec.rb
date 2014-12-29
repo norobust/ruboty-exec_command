@@ -15,11 +15,11 @@ describe Ruboty::Handlers::Command do
   end
 
   let(:said) do
-    "@ruboty example hello"
+    "@ruboty example hello world"
   end
 
   let(:replied) do
-    "hello!"
+    "hello world!"
   end
 
   before do

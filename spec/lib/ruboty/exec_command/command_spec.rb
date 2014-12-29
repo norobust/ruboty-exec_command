@@ -34,20 +34,27 @@ describe Ruboty::ExecCommand::Command do
 
   describe "#command" do
     it "should return command name" do
-      expect(@e.command_args).to eq("a b")
+      expect(@e.command_args).to eq(["a", "b"])
     end
   end
 end
 
+# convert command args -> absolute path, so this is a test for ruboty action
 describe Ruboty::ExecCommand::Command do
-  before do
+  before(:each) do
     ENV['RUBOTY_ROOT'] = Dir.pwd
-    @c = Ruboty::ExecCommand::Command.new(command_args: "example hello hoge")
+    @c = Ruboty::ExecCommand::Command.new(command_args: "example hello hoge -l fuga")
   end
 
   describe "#absolute_path" do
     it "should return absolute path" do
       expect(@c.absolute_path).to eq("#{ENV['RUBOTY_ROOT']}/commands/example/hello")
+    end
+  end
+
+  describe "#opt_args" do
+    it "should return only command options" do
+      expect(@c.opt_args).to eq(["hoge", "-l", "fuga"])
     end
   end
 end

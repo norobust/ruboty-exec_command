@@ -4,8 +4,8 @@ module Ruboty
       class Command < Ruboty::Actions::Base
         def call
           # TODO: add timeout
-          extension = Ruboty::ExecCommand::Command.new(command_args: command_body)
-          message.reply(extension.run.chomp)
+          c = Ruboty::ExecCommand::Command.new(command_args: command_body)
+          message.reply(c.run(c.opt_args).chomp)
         end
 
         def robot_prefix_pattern

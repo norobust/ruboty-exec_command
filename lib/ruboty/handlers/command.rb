@@ -10,7 +10,7 @@ module Ruboty
       # The command should return a usage with -h option
       def self.register_commands
         Ruboty::ExecCommand::Command.all.each do |e|
-          on /#{e.command_args}/i, name: "command_handler", description: e.help
+          on /#{e.relative_path.gsub('/', ' ')}/i, name: "command_handler", description: e.help
         end
       end
 
