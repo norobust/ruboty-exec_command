@@ -3,8 +3,16 @@ module Ruboty
     class Command
 
       class << self
+        def ruboty_root
+          "#{ENV['RUBOTY_ROOT'] || Dir.pwd}"
+        end
+
         def command_root
-          "#{ENV['RUBOTY_ROOT'] || Dir.pwd}/commands"
+          "#{ruboty_root}/commands"
+        end
+
+        def log_root
+          "#{ruboty_root}/logs/exec_command"
         end
 
         def command?(path)
@@ -28,7 +36,12 @@ module Ruboty
         args = { absolute_path: nil, command_args: nil }.merge(args)
         @absolute_path = args[:absolute_path]
         @command_args = args[:command_args].split if not args[:command_args].nil?
+        @pid = nil
+        @start_at = nil
       end
+
+      attr_reader :pid
+      attr_reader :start_at
 
       def absolute_path
         @absolute_path ||= command2path[0]
@@ -38,17 +51,20 @@ module Ruboty
         @relative_path ||= absolute_path.sub(/^#{self.class.command_root}\//,"")
       end
 
-      def command_args
-        @command_args ||= relative_path.split('/')
+      def command_name
+        @command_name ||= relative_path.gsub('/', ' ')
       end
 
       def __command2path(path, args)
-        return ["", ""] if args == []
-
         if self.class.command?(path)
           [path, args]
         else
-          __command2path("#{path}/#{args[0]}", args.slice(1, args.length))
+          if args == []
+            # command not found
+            return ["", ""]
+          else
+            __command2path("#{path}/#{args[0]}", args.slice(1, args.length))
+          end
         end
       end
 
@@ -62,8 +78,48 @@ module Ruboty
         @opt_args ||= command2path[1]
       end
 
+      def this_month
+        Time.now.strftime "%Y-%m"
+      end
+
+      def this_time
+        Time.now.strftime "%Y-%m-%d_%H:%M:%S"
+      end
+
+      def log_dir
+        d = "#{self.class.log_root}/#{this_month}"
+        FileUtils.mkdir_p(d) if not Dir.exists?(d)
+        d
+      end
+
+      def output_file_name
+        %Q(#{log_dir}/#{command_name.gsub(" ", "_")}-#{this_time})
+      end
+
+      def output_files
+        # return temporary output file IO objects [stdout, stderr]
+        ["#{output_file_name}.out", "#{output_file_name}.err"]
+      end
+
+      def stdout_log
+        # return contents of stdout
+        File.open(output_files[0]).read
+      end
+
+      def stderr_log
+        # return contents of stderr
+        File.open(output_files[1]).read
+      end
+
       def run(args=[])
         `#{absolute_path} #{args.join(" ")}`
+      end
+
+      def run_bg(args=[])
+        stdout, stderr = output_files
+        @start_at = this_time
+        @pid = Process.spawn(%Q(#{absolute_path} #{args.join(" ")}),
+                        pgroup: true, out: stdout, err: stderr)
       end
 
       def help

@@ -12,6 +12,16 @@ if RUBOTY_ROOT is defined.
 For your convinience, please implement -h option into the
 command. The usage will be used for help message of ruboty.
 
+## Command Controll
+
+List running commands:
+
+    > ruboty command list
+
+Kill running command, you can specify command index in the result of ```command list``` or PID
+
+    > ruboty command kill <index|PID>
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -27,6 +37,12 @@ And then execute:
 Or install it yourself as:
 
     $ gem install ruboty-exec_command
+
+## History
+
+- 0.0.4:
+ - command runs as a back ground thread
+ - command accepts option arguments
 
 ## Contributing
 

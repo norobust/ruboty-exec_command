@@ -34,7 +34,7 @@ describe Ruboty::ExecCommand::Command do
 
   describe "#command" do
     it "should return command name" do
-      expect(@e.command_args).to eq(["a", "b"])
+      expect(@e.command_name).to eq("a b")
     end
   end
 end

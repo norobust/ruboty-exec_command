@@ -18,8 +18,50 @@ describe Ruboty::Handlers::Command do
     "@ruboty example hello world"
   end
 
+  let(:said_to_sleep) do
+    "@ruboty example sleep 1"
+  end
+
+  let(:said_to_kill) do
+    "@ruboty command kill 1"
+  end
+
+  let(:said_to_list) do
+    "@ruboty command list"
+  end
+
   let(:replied) do
+    "[example hello] invoked."
+  end
+
+  let(:replied_sleep) do
+    "[example sleep] invoked."
+  end
+
+  let(:replied_success) do
+    "[example hello] completed successfully."
+  end
+
+  let(:replied_stdout) do
     "hello world!"
+  end
+
+  let(:replied_after_kill) do
+    "[example sleep] killed by signal 9"
+  end
+
+  def reply_data(body, original_body)
+    {
+      body: body,
+      from: to,
+      to: from,
+      original: {
+        body: original_body,
+        from: from,
+        robot: robot,
+        to: to,
+      }
+    }
   end
 
   before do
@@ -27,19 +69,62 @@ describe Ruboty::Handlers::Command do
   end
 
   describe "#command_handler" do
+    before do
+      # block waiter thread in Ruboty::ExecCommand::Actions::Command.run_and_monitor
+      ENV['RUBOTY_ENV'] = "blocked_test"
+    end
+
     it "run example command" do
-      robot.should_receive(:say).with(
-      body: replied,
-      from: to,
-      to: from,
-      original: {
-        body: said,
-        from: from,
-        robot: robot,
-        to: to,
-      },
-      )
+      robot.should_receive(:say).with(reply_data(replied, said))
+      robot.should_receive(:say).with(reply_data(replied_success, said))
+      robot.should_receive(:say).with(reply_data(replied_stdout, said))
       robot.receive(body: said, from: from, to: to)
+    end
+
+    after do
+      ENV['RUBOTY_ENV'] = "test"
+    end
+  end
+
+  describe "#kill_command" do
+    it "run kill command" do
+      thread = Thread.new do
+        ENV['RUBOTY_ENV'] = "blocked_test"
+        robot.should_receive(:say).with(reply_data(replied_sleep, said_to_sleep))
+        robot.should_receive(:say).with(reply_data(replied_after_kill, said_to_sleep))
+        robot.receive(body: said_to_sleep, from: from, to: to)
+      end
+
+
+      # Test command invoked
+      expect { robot.receive(body: said_to_kill, from: from, to: to) }.to change {
+        robot.brain.data[:command_slot].running_commands.count}.from(1).to(0)
+
+        # Wait killed message
+      thread.join
+    end
+    
+    after do
+      ENV['RUBOTY_ENV'] = "test"
+    end
+  end
+
+  describe "#list_command" do
+    it "list running commands" do
+      robot.receive(body: said_to_sleep, from: from, to: to)
+      robot.receive(body: said_to_sleep, from: from, to: to)
+
+      comm1 = robot.brain.data[:command_slot].running_commands[0]
+      comm2 = robot.brain.data[:command_slot].running_commands[1]
+      body1="1: example sleep (PID[#{comm1.pid}], started at #{comm1.start_at})\n"
+      body2="2: example sleep (PID[#{comm2.pid}], started at #{comm2.start_at})"
+
+      robot.should_receive(:say).with(reply_data(body1+body2, said_to_list))
+      robot.receive(body: said_to_list, from: from, to: to)
+    end
+
+    after do
+      ENV['RUBOTY_ENV'] = "test"
     end
   end
 

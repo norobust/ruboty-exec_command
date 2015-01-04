@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ "$1" == "-h" ]; then
+  echo "sleep"
+else
+  echo "Have a good sleep." 1>&2
+  sleep $*
+fi
