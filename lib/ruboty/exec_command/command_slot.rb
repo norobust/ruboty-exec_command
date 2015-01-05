@@ -28,9 +28,9 @@ module Ruboty
         found = @commands.index { |c| c.pid == idx_or_pid }
 
         if found.nil?
+          # look for the command with index
           i = idx_or_pid.to_i
-          num_commands = @commands.size
-          if i <= 0 or i > num_commands
+          if i <= 0 or i > @commands.size
             nil
           else
             @commands[i-1]
@@ -49,10 +49,8 @@ module Ruboty
         if @commands.size == 0
           "No command running."
         else
-          number = 0
-          @commands.map do |c|
-            number += 1
-            "#{number}: #{c.command_name} (PID[#{c.pid}], started at #{c.start_at})\n"
+          @commands.map.with_index do |c, number|
+            "#{number+1}: #{c.command_name} (PID[#{c.pid}], started at #{c.start_at})\n"
           end.join.chomp
         end
       end
@@ -62,8 +60,9 @@ module Ruboty
         unless command.nil?
           Process.kill(-9, command.pid) # kill process group
           forget(command.pid)
+        else
+          false
         end
-        command
       end
     end
   end

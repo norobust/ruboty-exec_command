@@ -40,7 +40,10 @@ Or install it yourself as:
 
 ## History
 
-- 0.0.4:
+- 0.1.1:
+ - each message contains PID
+
+- 0.1.0:
  - command runs as a back ground thread
  - command accepts option arguments
 

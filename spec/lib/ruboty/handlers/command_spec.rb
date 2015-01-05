@@ -19,7 +19,7 @@ describe Ruboty::Handlers::Command do
   end
 
   let(:said_to_sleep) do
-    "@ruboty example sleep 1"
+    "@ruboty example sleep 5"
   end
 
   let(:said_to_kill) do
@@ -31,15 +31,15 @@ describe Ruboty::Handlers::Command do
   end
 
   let(:replied) do
-    "[example hello] invoked."
+    /\[example hello\] invoked. PID: \d+/
   end
 
   let(:replied_sleep) do
-    "[example sleep] invoked."
+    /\[example sleep\] invoked. PID: \d+/
   end
 
   let(:replied_success) do
-    "[example hello] completed successfully."
+    /\[example hello\] completed successfully. PID: \d+/
   end
 
   let(:replied_stdout) do
@@ -47,7 +47,7 @@ describe Ruboty::Handlers::Command do
   end
 
   let(:replied_after_kill) do
-    "[example sleep] killed by signal 9"
+    /\[example sleep\] killed by signal 9 PID: \d+/
   end
 
   def reply_data(body, original_body)
@@ -64,6 +64,13 @@ describe Ruboty::Handlers::Command do
     }
   end
 
+
+  def should_receive_body(reply)
+    robot.should_receive(:say) do |args, options|
+      args[:body].should match(reply)
+    end
+  end
+
   before do
     ENV['RUBOTY_ROOT'] = Dir.pwd
   end
@@ -75,8 +82,9 @@ describe Ruboty::Handlers::Command do
     end
 
     it "run example command" do
-      robot.should_receive(:say).with(reply_data(replied, said))
-      robot.should_receive(:say).with(reply_data(replied_success, said))
+      #robot.should_receive(:say).with(reply_data(replied, said))
+      should_receive_body(replied)
+      should_receive_body(replied_success)
       robot.should_receive(:say).with(reply_data(replied_stdout, said))
       robot.receive(body: said, from: from, to: to)
     end
@@ -90,8 +98,8 @@ describe Ruboty::Handlers::Command do
     it "run kill command" do
       thread = Thread.new do
         ENV['RUBOTY_ENV'] = "blocked_test"
-        robot.should_receive(:say).with(reply_data(replied_sleep, said_to_sleep))
-        robot.should_receive(:say).with(reply_data(replied_after_kill, said_to_sleep))
+        should_receive_body(replied_sleep)
+        should_receive_body(replied_after_kill)
         robot.receive(body: said_to_sleep, from: from, to: to)
       end
 
@@ -103,7 +111,7 @@ describe Ruboty::Handlers::Command do
         # Wait killed message
       thread.join
     end
-    
+
     after do
       ENV['RUBOTY_ENV'] = "test"
     end
