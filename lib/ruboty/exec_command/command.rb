@@ -1,3 +1,5 @@
+require 'fileutils'
+
 module Ruboty
   module ExecCommand
     class Command
@@ -11,8 +13,8 @@ module Ruboty
           "#{ruboty_root}/commands"
         end
 
-        def log_root
-          "#{ruboty_root}/logs/exec_command"
+        def output_root
+          ENV['EXEC_COMMAND_OUTPUT_ROOT'] || "#{ruboty_root}/logs/exec_command"
         end
 
         def command?(path)
@@ -86,28 +88,38 @@ module Ruboty
         Time.now.strftime "%Y-%m-%d_%H:%M:%S"
       end
 
-      def log_dir
-        d = "#{self.class.log_root}/#{this_month}"
+      def output_dir
+        d = ENV['EXEC_COMMAND_OUTPUT_DIR'] || "#{self.class.output_root}/#{this_month}"
         FileUtils.mkdir_p(d) if not Dir.exists?(d)
         d
       end
 
-      def output_file_name
-        %Q(#{log_dir}/#{command_name.gsub(" ", "_")}-#{this_time})
+      # symlink to output_file_name so that we can easily tail -F
+      def symlink_file_name
+        %Q(#{output_dir}/#{command_name.gsub(" ", "_")})
       end
 
+      def output_file_name
+        %Q(#{output_dir}/#{command_name.gsub(" ", "_")}-#{this_time})
+      end
+
+      # return symlink output file name [stdout, stderr]
+      def symlink_files
+        ["#{symlink_file_name}.out", "#{symlink_file_name}.err"]
+      end
+
+      # return temporary output file name [stdout, stderr]
       def output_files
-        # return temporary output file IO objects [stdout, stderr]
         ["#{output_file_name}.out", "#{output_file_name}.err"]
       end
 
+      # return contents of stdout
       def stdout_log
-        # return contents of stdout
         File.open(output_files[0]).read
       end
 
+      # return contents of stderr
       def stderr_log
-        # return contents of stderr
         File.open(output_files[1]).read
       end
 
@@ -118,10 +130,15 @@ module Ruboty
       def run_bg(args=[])
         stdout, stderr = output_files
         @start_at = this_time
+        stdout_link, stderr_link = symlink_files
+        FileUtils.ln_sf(stdout, stdout_link)
+        FileUtils.ln_sf(stderr, stderr_link)
+        cmd = %Q(#{absolute_path} #{args.join(" ")})
         with_clean_env do
-          @pid = Process.spawn(%Q(#{absolute_path} #{args.join(" ")}),
-                               pgroup: true, out: stdout, err: stderr)
+          @pid = Process.spawn(cmd, pgroup: true, out: stdout, err: stderr)
         end
+        Ruboty.logger.debug { "[EXEC_COMMAND] Invoked `#{cmd}`. PID: #{@pid}" }
+        @pid
       end
 
       def help
