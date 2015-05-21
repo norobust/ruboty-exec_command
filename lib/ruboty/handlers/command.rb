@@ -14,6 +14,7 @@ module Ruboty
       # under "commands" directory. The path name to the
       # executable command is gonna be a command name.
       #  i.e. commands/server/monitor => /server monitor/
+      # All of commands are called with -h option on the startup.
       # The command should return a usage with -h option
       def self.register_commands
         Ruboty::ExecCommand::Command.all.each do |e|

@@ -26,7 +26,9 @@ module Ruboty
 
         def run_and_monitor(comm)
           pid = command_slot.run(comm)
-          message.reply("[#{comm.command_name}] invoked. PID: #{comm.pid}")
+          msg = "[#{comm.command_name}] invoked. PID: #{comm.pid}"
+          Ruboty.logger.info { "[EXEC_COMMAND] #{msg}" }
+          message.reply(msg)
 
           # Waiter thread
           thread = Thread.new do
@@ -34,15 +36,19 @@ module Ruboty
             command_slot.forget(pid)
 
             if status.exitstatus == 0
-              message.reply("[#{comm.command_name}] completed successfully. PID: #{comm.pid}")
+              msg = "[#{comm.command_name}] completed successfully. PID: #{comm.pid}"
+              Ruboty.logger.info { "[EXEC_COMMAND] #{msg}" }
+              message.reply(msg)
               message.reply(comm.stdout_log.chomp)
             elsif status.signaled?
-              message.reply("[#{comm.command_name}] killed by signal #{status.termsig} PID: #{comm.pid}")
+              msg = "[#{comm.command_name}] killed by signal #{status.termsig} PID: #{comm.pid}"
+              Ruboty.logger.info { "[EXEC_COMMAND] #{msg}" }
+              message.reply(msg)
             else
-              message.reply("[#{comm.command_name}] exit status with #{status} PID: #{comm.pid}\n" +
-                          comm.stdout_log +
-                          "stderr: " + comm.stderr_log.chomp
-                        )
+              msg = "[#{comm.command_name}] exit status with #{status} PID: #{comm.pid}\n" +
+                comm.stdout_log + "stderr: " + comm.stderr_log.chomp
+              Ruboty.logger.info { "[EXEC_COMMAND] #{msg}" }
+              message.reply(msg)
             end
           end
 
