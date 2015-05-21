@@ -44,6 +44,8 @@ Or install it yourself as:
 | Name                     | Description                  | Default           |
 |--------------------------|------------------------------|-------------------|
 | LOG_LEVEL                | log level                    | 1 (Logger::INFO)  |
+| EXEC_COMMAND_OUTPUT_ROOT | The command output root      | logs/exec_command |
+| EXEC_COMMAND_OUTPUT_DIR  | The command output directory | "#{root}/%Y-%m    |
 
 ## History
 
