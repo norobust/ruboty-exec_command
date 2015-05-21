@@ -118,14 +118,25 @@ module Ruboty
       def run_bg(args=[])
         stdout, stderr = output_files
         @start_at = this_time
-        @pid = Process.spawn(%Q(#{absolute_path} #{args.join(" ")}),
-                        pgroup: true, out: stdout, err: stderr)
+        with_clean_env do
+          @pid = Process.spawn(%Q(#{absolute_path} #{args.join(" ")}),
+                               pgroup: true, out: stdout, err: stderr)
+        end
       end
 
       def help
         run(args=['-h']).chomp
       end
 
+      def with_clean_env(&block)
+        if defined?(Bundler)
+          Bundler.with_clean_env do
+            yield
+          end
+        else
+          yield
+        end
+      end
     end
   end
 end
