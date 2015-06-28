@@ -49,6 +49,12 @@ Or install it yourself as:
 
 ## History
 
+- 0.1.2:
+ - fix: not to match with shorter name commands
+ - add: symlink to output files to tail -F easily
+ - add: Bundler.with_clean_env to run a ruby script with bundler inside ruboty
+ - add: logging to see what's going on with ruboty 
+
 - 0.1.1:
  - each message contains PID
 
