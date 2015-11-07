@@ -100,7 +100,7 @@ module Ruboty
       end
 
       def output_file_name
-        %Q(#{output_dir}/#{command_name.gsub(" ", "_")}-#{this_time})
+        %Q(#{output_dir}/#{command_name.gsub(" ", "_")}-#{start_at})
       end
 
       # return symlink output file name [stdout, stderr]
@@ -128,8 +128,8 @@ module Ruboty
       end
 
       def run_bg(args=[])
-        stdout, stderr = output_files
         @start_at = this_time
+        stdout, stderr = output_files
         stdout_link, stderr_link = symlink_files
         FileUtils.ln_sf(stdout, stdout_link)
         FileUtils.ln_sf(stderr, stderr_link)
