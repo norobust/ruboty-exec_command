@@ -49,6 +49,9 @@ Or install it yourself as:
 
 ## History
 
+- 0.1.3:
+ - fix: output_file_names time stamp jitter
+
 - 0.1.2:
  - fix: not to match with shorter name commands
  - add: symlink to output files to tail -F easily
