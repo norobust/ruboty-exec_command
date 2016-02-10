@@ -32,23 +32,27 @@ module Ruboty
 
           # Waiter thread
           thread = Thread.new do
-            ignore_pid, status = Process.wait2(pid)
-            command_slot.forget(pid)
+            begin
+              ignore_pid, status = Process.wait2(pid)
+              command_slot.forget(pid)
 
-            if status.exitstatus == 0
-              msg = "[#{comm.command_name}] completed successfully. PID: #{comm.pid}"
-              Ruboty.logger.info { "[EXEC_COMMAND] #{msg}" }
-              message.reply(msg)
-              message.reply(comm.stdout_log.chomp)
-            elsif status.signaled?
-              msg = "[#{comm.command_name}] killed by signal #{status.termsig} PID: #{comm.pid}"
-              Ruboty.logger.info { "[EXEC_COMMAND] #{msg}" }
-              message.reply(msg)
-            else
-              msg = "[#{comm.command_name}] exit status with #{status} PID: #{comm.pid}\n" +
-                comm.stdout_log + "stderr: " + comm.stderr_log.chomp
-              Ruboty.logger.info { "[EXEC_COMMAND] #{msg}" }
-              message.reply(msg)
+              if status.exitstatus == 0
+                msg = "[#{comm.command_name}] completed successfully. PID: #{comm.pid}"
+                Ruboty.logger.info { "[EXEC_COMMAND] #{msg}" }
+                message.reply(msg)
+                message.reply(comm.stdout_log.chomp)
+              elsif status.signaled?
+                msg = "[#{comm.command_name}] killed by signal #{status.termsig} PID: #{comm.pid}"
+                Ruboty.logger.info { "[EXEC_COMMAND] #{msg}" }
+                message.reply(msg)
+              else
+                msg = "[#{comm.command_name}] exit status with #{status} PID: #{comm.pid}\n" +
+                  comm.stdout_log + "stderr: " + comm.stderr_log.chomp
+                  Ruboty.logger.info { "[EXEC_COMMAND] #{msg}" }
+                  message.reply(msg)
+              end
+            rescue Exception => e
+              Ruboty.logger.error { "[EXEC_COMMAND] #{e.class} #{e.message} #{e.backtrace.first}" }
             end
           end
 
