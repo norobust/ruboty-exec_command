@@ -49,6 +49,10 @@ Or install it yourself as:
 
 ## History
 
+- 0.1.4:
+ - fix: refer to Ruboty::Bundler if ruboty-bundler is used
+ - add: rescue errors of invoked Thread could raise
+
 - 0.1.3:
  - fix: output_file_names time stamp jitter
 
