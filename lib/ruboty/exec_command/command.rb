@@ -146,8 +146,8 @@ module Ruboty
       end
 
       def with_clean_env(&block)
-        if defined?(Bundler)
-          Bundler.with_clean_env do
+        if defined?(::Bundler)
+          ::Bundler.with_clean_env do
             yield
           end
         else
